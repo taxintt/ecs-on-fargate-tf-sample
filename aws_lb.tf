@@ -1,4 +1,4 @@
-# load balancer
+# load balancer : internal
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb
 resource "aws_lb" "internal" {
   name = "sbcntr-alb-internal"
@@ -75,6 +75,7 @@ resource "aws_lb_listener" "internal" {
   }
 }
 
+# load balancer : frontend
 resource "aws_lb" "frontend" {
   name               = "sbcntr-alb-ingress-frontend"
   internal           = false
