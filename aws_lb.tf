@@ -11,7 +11,7 @@ resource "aws_lb" "internal" {
     aws_subnet.application_1c.id,
   ]
 
-  enable_deletion_protection = true
+  enable_deletion_protection = false
 
 
   #   access_logs {
