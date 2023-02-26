@@ -17,3 +17,7 @@ init: ## run terraform init
 .PHONY: format
 format: ## run terraform fmt
 	terraform fmt --recursive
+
+.PHONY: show-graph
+show-graph: ## show 
+	terraform graph -draw-cycles | dot -Tpng > graph.png
