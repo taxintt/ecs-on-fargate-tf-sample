@@ -1,3 +1,24 @@
+# ref: https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/task_execution_IAM_role.html
+data "aws_iam_policy_document" "ecs_tasks_execution_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "ecs_tasks_execution_role" {
+  name               = "ecs-task-execution-role"
+  assume_role_policy = "${data.aws_iam_policy_document.ecs_tasks_execution_role.json}"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_tasks_execution_role" {
+  role       = "${aws_iam_role.ecs_tasks_execution_role.name}"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
 
 #
 # frontend
@@ -72,8 +93,8 @@ resource "aws_ecs_task_definition" "frontend" {
   memory = 1024
 
   # INFO: execution_role_arn is not specified in default setting
-  # execution_role_arn = "xxx"
-
+  execution_role_arn = aws_iam_role.ecs_tasks_execution_role.arn
+  
   # ref: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
   container_definitions = jsonencode([
     {
