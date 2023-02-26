@@ -143,7 +143,7 @@ resource "aws_internet_gateway" "main" {
   }
 }
 
-# IGW attachment
+# internet gateway attachment
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway_attachment
 resource "aws_internet_gateway_attachment" "main" {
   internet_gateway_id = aws_internet_gateway.main.id
@@ -239,13 +239,6 @@ resource "aws_security_group" "ingress" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = [aws_vpc.main.cidr_block]
-  }
-  ingress {
-    description      = "from ::/0:80"
-    from_port        = 80
-    to_port          = 80
-    protocol         = "tcp"
-    ipv6_cidr_blocks = [aws_vpc.main.ipv6_cidr_block]
   }
 
   ## Internet LB -> Front Container
