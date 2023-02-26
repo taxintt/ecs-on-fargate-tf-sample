@@ -1,3 +1,115 @@
+
+#
+# frontend
+#
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster
+resource "aws_ecs_cluster" "frontend" {
+  name = "sbcntr-ecs-frontend-cluster"
+
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+resource "aws_ecs_service" "frontend" {
+  name            = "sbcntr-ecs-frontend-service"
+  cluster         = aws_ecs_cluster.frontend.id
+  task_definition = aws_ecs_task_definition.frontend.arn
+  desired_count   = 2
+
+  launch_type = "FARGATE"
+
+  # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/platform-linux-fargate.html
+  platform_version = "1.4.0"
+
+  # INFO: work 1 task at least and work 2 tasks at most
+  deployment_maximum_percent         = 200
+  deployment_minimum_healthy_percent = 100
+
+  enable_ecs_managed_tags = true
+  network_configuration {
+    security_groups = [aws_security_group.internal.id]
+    subnets = [
+      aws_subnet.application_1a.id,
+      aws_subnet.application_1c.id,
+    ]
+    assign_public_ip = false
+  }
+
+  health_check_grace_period_seconds = 120
+  load_balancer {
+    # INFO: ARN of the Load Balancer target group to associate with the service.
+    # TODO: fix me and follow the content of book
+    target_group_arn = aws_lb_target_group.green.arn
+    container_name   = "app"
+    container_port   = 80
+  }
+
+  deployment_circuit_breaker {
+    enable   = false
+    rollback = false
+  }
+
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
+
+  lifecycle {
+    ignore_changes = [task_definition, load_balancer]
+  }
+}
+
+# ecs task definition
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition
+resource "aws_ecs_task_definition" "frontend" {
+  family                   = "sbcntr-frontend-def"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+
+  cpu    = 512
+  memory = 1024
+
+  # INFO: execution_role_arn is not specified in default setting
+  # execution_role_arn = "xxx"
+
+  # ref: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
+  container_definitions = jsonencode([
+    {
+      name  = "app"
+      image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/sbcntr-frontend:dbv1"
+
+      # TODO: if developer needs to use private repo, configure the below section
+      # see https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/private-auth.html
+      # "repositoryCredentials": {
+      #       "credentialsParameter": "arn:aws:secretsmanager:region:aws_account_id:secret:secret_name"
+      # }
+      cpu       = 256
+      memory    = 512
+      essential = true
+
+      # INFO: used for ECS exec
+      # see https://toris.io/2021/06/using-ecs-exec-with-readonlyrootfilesystem-enabled-containers/
+      readonlyRootFilesystem = true
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+        }
+      ]
+      environment = [
+        { "name" : "SESSION_SECRET_KEY", "value" : "41b678c65b37bf99c37bcab522802760" },
+        { "name" : "APP_SERVICE_HOST", "value" : "http://${aws_lb.internal.dns_name}" },
+        { "name" : "NOTIF_SERVICE_HOST", "value" : "http://${aws_lb.internal.dns_name}" }
+      ],
+    }
+  ])
+}
+
+#
+# backend
+#
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster
 resource "aws_ecs_cluster" "backend" {
   name = "sbcntr-ecs-backend-cluster"
@@ -44,7 +156,7 @@ resource "aws_ecs_service" "backend" {
   }
 
   deployment_circuit_breaker {
-    enable = false
+    enable   = false
     rollback = false
   }
 
