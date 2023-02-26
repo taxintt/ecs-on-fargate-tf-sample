@@ -51,7 +51,7 @@ resource "aws_ecs_service" "frontend" {
   }
 
   deployment_controller {
-    type = "CODE_DEPLOY"
+    type = "ECS"
   }
 
   lifecycle {
@@ -70,7 +70,7 @@ resource "aws_ecs_task_definition" "frontend" {
   memory = 1024
 
   # INFO: execution_role_arn is not specified in default setting
-  execution_role_arn = aws_iam_role.ecs_tasks_execution_role.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
   # ref: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
   container_definitions = jsonencode([
@@ -159,7 +159,7 @@ resource "aws_ecs_service" "backend" {
   }
 
   deployment_controller {
-    type = "CODE_DEPLOY"
+    type = "ECS"
   }
 
   service_registries {
@@ -211,7 +211,7 @@ resource "aws_ecs_task_definition" "backend" {
   memory = 1024
 
   # INFO: execution_role_arn is not specified in default setting
-  # execution_role_arn = "xxx"
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
   # ref: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
   container_definitions = jsonencode([
