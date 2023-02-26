@@ -41,7 +41,7 @@ resource "aws_ecs_service" "frontend" {
   load_balancer {
     # INFO: ARN of the Load Balancer target group to associate with the service.
     # TODO: fix me and follow the content of book
-    target_group_arn = aws_lb_target_group.green.arn
+    target_group_arn = aws_lb_target_group.frontend.arn
     container_name   = "app"
     container_port   = 80
   }
