@@ -12,11 +12,11 @@ data "aws_iam_policy_document" "ecs_tasks_execution_role" {
 
 resource "aws_iam_role" "ecs_tasks_execution_role" {
   name               = "ecs-task-execution-role"
-  assume_role_policy = "${data.aws_iam_policy_document.ecs_tasks_execution_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_execution_role.json
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_tasks_execution_role" {
-  role       = "${aws_iam_role.ecs_tasks_execution_role.name}"
+  role       = aws_iam_role.ecs_tasks_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -94,7 +94,7 @@ resource "aws_ecs_task_definition" "frontend" {
 
   # INFO: execution_role_arn is not specified in default setting
   execution_role_arn = aws_iam_role.ecs_tasks_execution_role.arn
-  
+
   # ref: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
   container_definitions = jsonencode([
     {
