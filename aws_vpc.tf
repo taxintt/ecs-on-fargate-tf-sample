@@ -285,15 +285,6 @@ resource "aws_security_group" "management" {
     to_port         = 3306
   }
 
-  ## Management server -> Internal LB
-  ingress {
-    description     = "HTTP for management server"
-    from_port       = 80
-    protocol        = "tcp"
-    security_groups = [aws_security_group.internal.id]
-    to_port         = 80
-  }
-
   ### Management Server -> VPC endpoint
   ingress {
     description     = "HTTPS for management server"
