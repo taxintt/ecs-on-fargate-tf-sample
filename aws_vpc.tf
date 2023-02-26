@@ -247,6 +247,8 @@ resource "aws_security_group" "ingress" {
     protocol         = "tcp"
     ipv6_cidr_blocks = [aws_vpc.main.ipv6_cidr_block]
   }
+
+  ## Internet LB -> Front Container
   ingress {
     description     = "HTTP for Ingress"
     from_port       = 80
@@ -274,6 +276,7 @@ resource "aws_security_group" "management" {
   description = "Security Group of management server"
   vpc_id      = aws_vpc.main.id
 
+  ## Management server -> DB
   ingress {
     description     = "MySQL protocol from management server"
     from_port       = 3306
@@ -282,14 +285,16 @@ resource "aws_security_group" "management" {
     to_port         = 3306
   }
 
+  ## Management server -> Internal LB
   ingress {
-    description     = "HTTP for front container"
+    description     = "HTTP for management server"
     from_port       = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.internal.id]
     to_port         = 80
   }
 
+  ### Management Server -> VPC endpoint
   ingress {
     description     = "HTTPS for management server"
     from_port       = 443
@@ -316,6 +321,7 @@ resource "aws_security_group" "front_container" {
   description = "Security Group of front container app"
   vpc_id      = aws_vpc.main.id
 
+  ## Front Container -> Internal LB
   ingress {
     description     = "HTTP for front container"
     from_port       = 80
@@ -324,6 +330,7 @@ resource "aws_security_group" "front_container" {
     to_port         = 80
   }
 
+  ### Front container -> VPC endpoint
   ingress {
     description     = "HTTPS for Front Container App"
     from_port       = 443
@@ -331,7 +338,7 @@ resource "aws_security_group" "front_container" {
     security_groups = [aws_security_group.vpce.id]
     to_port         = 443
   }
-
+  ## Front container -> DB
   ingress {
     description     = "MySQL protocol from frontend App"
     from_port       = 3306
@@ -358,6 +365,7 @@ resource "aws_security_group" "internal" {
   description = "Security group for internal load balancer"
   vpc_id      = aws_vpc.main.id
 
+  ## Internal LB -> Back Container
   ingress {
     description     = "HTTP for internal lb"
     from_port       = 80
@@ -366,6 +374,23 @@ resource "aws_security_group" "internal" {
     to_port         = 80
   }
 
+  ## Internal LB -> Management Server
+  ingress {
+    description     = "HTTP for management container"
+    from_port       = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.management.id]
+    to_port         = 80
+  }
+
+  ## Internal LB -> Management Server
+  ingress {
+    description     = "Test port is used for management server"
+    from_port       = 10080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.management.id]
+    to_port         = 10080
+  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -384,6 +409,7 @@ resource "aws_security_group" "container" {
   description = "Security Group of backend app"
   vpc_id      = aws_vpc.main.id
 
+  ## Back container -> DB
   ingress {
     description     = "MySQL protocol from backend App"
     from_port       = 3306
@@ -392,6 +418,7 @@ resource "aws_security_group" "container" {
     to_port         = 3306
   }
 
+  ### Back container -> VPC endpoint
   ingress {
     description     = "HTTPS for Container App"
     from_port       = 443
@@ -503,6 +530,27 @@ resource "aws_vpc_endpoint" "s3" {
   # https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html
 
   tags = {
-    Name = "sbcntr-vpce-ecr-s3"
+    Name = "sbcntr-vpce-s3"
+  }
+}
+
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.${var.region}.logs"
+
+  security_group_ids = [aws_security_group.vpce.id]
+  subnet_ids = [
+    aws_subnet.egress_1a.id,
+    aws_subnet.egress_1c.id,
+  ]
+
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  # INFO: aws_iam_policy is configured as full access in default setting
+  # https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html
+
+  tags = {
+    Name = "sbcntr-vpce-logs"
   }
 }
