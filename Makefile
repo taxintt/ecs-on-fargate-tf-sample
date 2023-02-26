@@ -1,19 +1,19 @@
 .PHONY: plan
 plan: ## run terraform plan
-	$(MAKE) -C environment/dev plan
+	terraform plan -var-file ./vars/dev.tfvars
 
 .PHONY: apply
 apply: ## run terraform apply
-	$(MAKE) -C environment/dev apply
+	terraform apply -var-file ./vars/dev.tfvars
 
 .PHONY: destroy
 destroy: ## run terraform destroy
-	$(MAKE) -C environment/dev destroy
+	terraform destroy -var-file ./vars/dev.tfvars
 
 .PHONY: init
 init: ## run terraform init
-	$(MAKE) -C environment/dev init
+	terraform init
 
 .PHONY: format
 format: ## run terraform fmt
-	$(MAKE) -C environment/dev format
+	terraform fmt --recursive
