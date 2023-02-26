@@ -92,7 +92,7 @@ resource "aws_lb_target_group" "frontend" {
   vpc_id      = aws_vpc.main.id
 
   health_check {
-    path                = "/healthcheck"
+    path                = "/"
     port                = "traffic-port"
     healthy_threshold   = 3
     unhealthy_threshold = 2
