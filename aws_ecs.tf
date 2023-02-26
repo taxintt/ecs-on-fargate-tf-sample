@@ -76,7 +76,7 @@ resource "aws_ecs_task_definition" "frontend" {
   container_definitions = jsonencode([
     {
       name  = "app"
-      image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/sbcntr-frontend:dbv1"
+      image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/sbcntr-frontend:v1"
 
       # TODO: if developer needs to use private repo, configure the below section
       # see https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/private-auth.html
