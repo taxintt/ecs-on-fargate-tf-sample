@@ -12,13 +12,6 @@ resource "aws_lb" "internal" {
   ]
 
   enable_deletion_protection = false
-
-
-  #   access_logs {
-  #     bucket  = aws_s3_bucket.lb_logs.id
-  #     prefix  = "test-lb"
-  #     enabled = true
-  #   }
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group
