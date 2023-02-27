@@ -36,25 +36,26 @@ resource "aws_rds_cluster" "aurora" {
   }
 }
 
-# aws rds instance
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance
+# aws rds cluster instance
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/rds_cluster_instance
 resource "aws_rds_cluster_instance" "instance" {
   count              = 2
   cluster_identifier = aws_rds_cluster.aurora.id
   identifier         = "sbcntr-db-${count.index}"
   instance_class     = "db.t3.small"
 
-  engine               = aws_rds_cluster.aurora.engine
-  engine_version       = aws_rds_cluster.aurora.engine_version
-  db_subnet_group_name = aws_db_subnet_group.aurora.arn
+  engine         = aws_rds_cluster.aurora.engine
+  engine_version = aws_rds_cluster.aurora.engine_version
 
-  publicly_accessible = false
+  db_subnet_group_name = aws_db_subnet_group.aurora.arn
+  publicly_accessible  = false
 
   monitoring_role_arn = aws_iam_role.aurora.arn
   monitoring_interval = 60
 
   auto_minor_version_upgrade   = true
   preferred_maintenance_window = "Sat:17:00-Sat:17:30"
+  promotion_tier               = 0
 
   tags = {
     Name = "sbcntr-db-${count.index}"
