@@ -238,16 +238,7 @@ resource "aws_security_group" "ingress" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
-  }
-
-  ## Internet LB -> Front Container
-  ingress {
-    description     = "HTTP for Ingress"
-    from_port       = 80
-    protocol        = "tcp"
-    security_groups = [aws_security_group.front_container.id]
-    to_port         = 80
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -269,22 +260,22 @@ resource "aws_security_group" "management" {
   description = "Security Group of management server"
   vpc_id      = aws_vpc.main.id
 
-  ## Management server -> DB
+  ## Internal LB -> Management Server
   ingress {
-    description     = "MySQL protocol from management server"
-    from_port       = 3306
+    description     = "HTTP for management container"
+    from_port       = 80
     protocol        = "tcp"
-    security_groups = [aws_security_group.database.id]
-    to_port         = 3306
+    security_groups = [aws_security_group.internal.id]
+    to_port         = 80
   }
 
-  ### Management Server -> VPC endpoint
+  ## Internal LB -> Management Server
   ingress {
-    description     = "HTTPS for management server"
-    from_port       = 443
+    description     = "Test port is used for management server"
+    from_port       = 10080
     protocol        = "tcp"
-    security_groups = [aws_security_group.vpce.id]
-    to_port         = 443
+    security_groups = [aws_security_group.internal.id]
+    to_port         = 10080
   }
 
   egress {
@@ -305,30 +296,13 @@ resource "aws_security_group" "front_container" {
   description = "Security Group of front container app"
   vpc_id      = aws_vpc.main.id
 
-  ## Front Container -> Internal LB
+  ## Internet LB -> Front Container
   ingress {
-    description     = "HTTP for front container"
+    description     = "HTTP for Ingress"
     from_port       = 80
     protocol        = "tcp"
-    security_groups = [aws_security_group.internal.id]
+    security_groups = [aws_security_group.ingress.id]
     to_port         = 80
-  }
-
-  ### Front container -> VPC endpoint
-  ingress {
-    description     = "HTTPS for Front Container App"
-    from_port       = 443
-    protocol        = "tcp"
-    security_groups = [aws_security_group.vpce.id]
-    to_port         = 443
-  }
-  ## Front container -> DB
-  ingress {
-    description     = "MySQL protocol from frontend App"
-    from_port       = 3306
-    protocol        = "tcp"
-    security_groups = [aws_security_group.database.id]
-    to_port         = 3306
   }
 
   egress {
@@ -349,32 +323,15 @@ resource "aws_security_group" "internal" {
   description = "Security group for internal load balancer"
   vpc_id      = aws_vpc.main.id
 
-  ## Internal LB -> Back Container
+  ## Front Container -> Internal LB
   ingress {
-    description     = "HTTP for internal lb"
+    description     = "HTTP for front container"
     from_port       = 80
     protocol        = "tcp"
-    security_groups = [aws_security_group.container.id]
+    security_groups = [aws_security_group.front_container.id]
     to_port         = 80
   }
 
-  ## Internal LB -> Management Server
-  ingress {
-    description     = "HTTP for management container"
-    from_port       = 80
-    protocol        = "tcp"
-    security_groups = [aws_security_group.management.id]
-    to_port         = 80
-  }
-
-  ## Internal LB -> Management Server
-  ingress {
-    description     = "Test port is used for management server"
-    from_port       = 10080
-    protocol        = "tcp"
-    security_groups = [aws_security_group.management.id]
-    to_port         = 10080
-  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -393,22 +350,13 @@ resource "aws_security_group" "container" {
   description = "Security Group of backend app"
   vpc_id      = aws_vpc.main.id
 
-  ## Back container -> DB
+  ## Internal LB -> Back Container
   ingress {
-    description     = "MySQL protocol from backend App"
-    from_port       = 3306
+    description     = "HTTP for internal lb"
+    from_port       = 80
     protocol        = "tcp"
-    security_groups = [aws_security_group.database.id]
-    to_port         = 3306
-  }
-
-  ### Back container -> VPC endpoint
-  ingress {
-    description     = "HTTPS for Container App"
-    from_port       = 443
-    protocol        = "tcp"
-    security_groups = [aws_security_group.vpce.id]
-    to_port         = 443
+    security_groups = [aws_security_group.internal.id]
+    to_port         = 80
   }
 
   egress {
@@ -429,6 +377,33 @@ resource "aws_security_group" "database" {
   description = "Security group for database"
   vpc_id      = aws_vpc.main.id
 
+  ## Front container -> DB
+  ingress {
+    description     = "MySQL protocol from frontend App"
+    from_port       = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.front_container.id]
+    to_port         = 3306
+  }
+
+  ## Back container -> DB
+  ingress {
+    description     = "MySQL protocol from backend App"
+    from_port       = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.container.id]
+    to_port         = 3306
+  }
+
+  ## Management server -> DB
+  ingress {
+    description     = "MySQL protocol from management server"
+    from_port       = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.management.id]
+    to_port         = 3306
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -446,6 +421,33 @@ resource "aws_security_group" "vpce" {
   name        = "vpce"
   description = "Security Group of VPC Endpoint"
   vpc_id      = aws_vpc.main.id
+
+  ### Front container -> VPC endpoint
+  ingress {
+    description     = "HTTPS for Front Container App"
+    from_port       = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.front_container.id]
+    to_port         = 443
+  }
+
+  ### Back container -> VPC endpoint
+  ingress {
+    description     = "HTTPS for Container App"
+    from_port       = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.container.id]
+    to_port         = 443
+  }
+
+  ### Management Server -> VPC endpoint
+  ingress {
+    description     = "HTTPS for management server"
+    from_port       = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.management.id]
+    to_port         = 443
+  }
 
   ingress {
     from_port   = 443
