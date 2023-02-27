@@ -99,7 +99,11 @@ resource "aws_ecs_task_definition" "frontend" {
       environment = [
         { "name" : "SESSION_SECRET_KEY", "value" : "41b678c65b37bf99c37bcab522802760" },
         { "name" : "APP_SERVICE_HOST", "value" : "http://${aws_lb.internal.dns_name}" },
-        { "name" : "NOTIF_SERVICE_HOST", "value" : "http://${aws_lb.internal.dns_name}" }
+        { "name" : "NOTIF_SERVICE_HOST", "value" : "http://${aws_lb.internal.dns_name}" },
+        { "name" : "DB_USERNAME", "valueFrom" : "${aws_secretsmanager_secret.database.arn}:username::" },
+        { "name" : "DB_PASSQORD", "valueFrom" : "${aws_secretsmanager_secret.database.arn}:password::" },
+        { "name" : "DB_HOST", "valueFrom" : "${aws_secretsmanager_secret.database.arn}:host::" },
+        { "name" : "DB_NAME", "valueFrom" : "${aws_secretsmanager_secret.database.arn}:dbname::" },
       ],
       logConfiguration = {
         logDriver = "awslogs",
