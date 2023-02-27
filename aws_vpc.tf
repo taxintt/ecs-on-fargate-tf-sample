@@ -547,3 +547,19 @@ resource "aws_vpc_endpoint" "logs" {
     Name = "sbcntr-vpce-logs"
   }
 }
+
+# subnet group
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_subnet_group
+resource "aws_db_subnet_group" "aurora" {
+  name        = "main"
+  description = "DB subnet group for Aurora"
+
+  subnet_ids = [
+    aws_subnet.db_1a.id,
+    aws_subnet.db_1c.id
+  ]
+
+  tags = {
+    Name = "sbcntr-rds-subnet-group"
+  }
+}
