@@ -43,7 +43,7 @@ resource "random_password" "admin_password" {
 }
 
 output "admin_password" {
-  value = random_password.admin_password.result
+  value     = random_password.admin_password.result
   sensitive = true
 }
 
