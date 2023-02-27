@@ -51,3 +51,25 @@ resource "aws_iam_role_policy_attachment" "ecr_readonly_role_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerRegistryReadOnly"
 }
+
+# aurora
+data "aws_iam_policy_document" "aurora_monitoring" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["monitoring.rds.amazonaws.com"]
+    }
+  }
+}
+resource "aws_iam_role" "aurora" {
+  name               = "aurora-enhanced-monitoring"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.aurora_monitoring.json
+}
+
+resource "aws_iam_role_policy_attachment" "aurora" {
+  role       = aws_iam_role.aurora.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
