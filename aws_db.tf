@@ -15,7 +15,7 @@ resource "aws_rds_cluster" "aurora" {
   database_name                       = "sbcntrapp"
   port                                = 3306
   master_username                     = "admin"
-  master_password                     = "admintest"
+  master_password                     = random_password.admin_password.result
 
   db_cluster_parameter_group_name  = "default.aurora-mysql5.7"
   db_instance_parameter_group_name = "default.aurora-mysql5.7"
@@ -34,6 +34,12 @@ resource "aws_rds_cluster" "aurora" {
   tags = {
     Name = "sbcntr-db"
   }
+}
+
+resource "random_password" "admin_password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 # aws rds cluster instance
