@@ -264,3 +264,32 @@ resource "aws_ecs_task_definition" "backend" {
     }
   ])
 }
+
+# ecs autoscaling policy
+resource "aws_appautoscaling_target" "frontend_target" {
+  max_capacity = 4
+  min_capacity = 2
+  resource_id  = "service/${aws_ecs_cluster.frontend.name}/${aws_ecs_service.frontend.name}"
+
+  # https://docs.aws.amazon.com/autoscaling/application/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestSyntax
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "frontend_policy" {
+  name               = "sbcntr-ecs-scaling-policy"
+  resource_id        = aws_appautoscaling_target.frontend_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.frontend_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.frontend_target.service_namespace
+
+  policy_type = "TargetTrackingScaling"
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+
+    target_value       = 80
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 300
+  }
+}
