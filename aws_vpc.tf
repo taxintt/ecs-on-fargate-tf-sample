@@ -527,6 +527,27 @@ resource "aws_vpc_endpoint" "s3" {
   }
 }
 
+resource "aws_vpc_endpoint" "secret" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.${var.region}.secretmanager"
+
+  security_group_ids = [aws_security_group.vpce.id]
+  subnet_ids = [
+    aws_subnet.egress_1a.id,
+    aws_subnet.egress_1c.id,
+  ]
+
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  # INFO: aws_iam_policy is configured as full access in default setting
+  # https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html
+
+  tags = {
+    Name = "sbcntr-vpce-secrets"
+  }
+}
+
 resource "aws_vpc_endpoint" "logs" {
   vpc_id       = aws_vpc.main.id
   service_name = "com.amazonaws.${var.region}.logs"
