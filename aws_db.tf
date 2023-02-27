@@ -42,6 +42,11 @@ resource "random_password" "admin_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
+output "admin_password" {
+  value = random_password.admin_password.result
+  sensitive = true
+}
+
 # aws rds cluster instance
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/rds_cluster_instance
 resource "aws_rds_cluster_instance" "instance" {
