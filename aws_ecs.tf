@@ -101,6 +101,14 @@ resource "aws_ecs_task_definition" "frontend" {
         { "name" : "APP_SERVICE_HOST", "value" : "http://${aws_lb.internal.dns_name}" },
         { "name" : "NOTIF_SERVICE_HOST", "value" : "http://${aws_lb.internal.dns_name}" }
       ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+            "awslogs-group": "${aws_cloudwatch_log_group.application.name}",
+            "awslogs-region": "${var.region}",
+            "awslogs-stream-prefix": "firelens"
+        }
+      }
     }
   ])
 }
@@ -241,6 +249,14 @@ resource "aws_ecs_task_definition" "backend" {
           hostPort      = 80
         }
       ]
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+            "awslogs-group": "${aws_cloudwatch_log_group.application.name}",
+            "awslogs-region": "${var.region}",
+            "awslogs-stream-prefix": "firelens"
+        }
+      }
     }
   ])
 }
