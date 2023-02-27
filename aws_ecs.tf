@@ -266,6 +266,7 @@ resource "aws_ecs_task_definition" "backend" {
 }
 
 # ecs autoscaling policy
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_target
 resource "aws_appautoscaling_target" "frontend_target" {
   max_capacity = 4
   min_capacity = 2
@@ -276,6 +277,7 @@ resource "aws_appautoscaling_target" "frontend_target" {
   service_namespace  = "ecs"
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_policy
 resource "aws_appautoscaling_policy" "frontend_policy" {
   name               = "sbcntr-ecs-scaling-policy"
   resource_id        = aws_appautoscaling_target.frontend_target.resource_id
