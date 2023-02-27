@@ -26,7 +26,7 @@ show tables;
 -- in cloud9 w/ sbcntr-frontend
 -- git checkout main
 -- export DB_USERNAME=migrate
--- export DB_PASSQORD=sbcntrMigrate
+-- export DB_PASSWORD=sbcntrMigrate
 -- export DB_HOST=<write_endpoint>
 -- export DB_NAME=sbcntrapp
 -- npm run migrate:dev
