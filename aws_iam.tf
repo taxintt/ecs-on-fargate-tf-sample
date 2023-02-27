@@ -1,3 +1,14 @@
+# code deploy role
+data "aws_iam_policy_document" "codedeploy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["codedeploy.amazonaws.com"]
+    }
+  }
+}
+
 resource "aws_iam_role" "codedeploy" {
   name        = "escCodeDeployRole"
   description = "Allows CodeDeploy to read S3 objects..."
@@ -14,16 +25,6 @@ resource "aws_iam_role_policy_attachment" "codedeploy" {
 }
 
 # ECS task execution role
-data "aws_iam_policy_document" "codedeploy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["codedeploy.amazonaws.com"]
-    }
-  }
-}
-
 # ref: https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/task_execution_IAM_role.html
 data "aws_iam_policy_document" "ecs_tasks_execution_role" {
   statement {
