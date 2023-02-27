@@ -47,7 +47,7 @@ resource "aws_rds_cluster_instance" "instance" {
   engine         = aws_rds_cluster.aurora.engine
   engine_version = aws_rds_cluster.aurora.engine_version
 
-  db_subnet_group_name = aws_db_subnet_group.aurora.arn
+  db_subnet_group_name = aws_db_subnet_group.aurora.name
   publicly_accessible  = false
 
   monitoring_role_arn = aws_iam_role.aurora.arn
