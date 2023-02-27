@@ -221,7 +221,7 @@ resource "aws_ecs_task_definition" "backend" {
       # INFO: pull docker hub image from ECR
       # https://aws.amazon.com/jp/blogs/containers/docker-official-images-now-available-on-amazon-elastic-container-registry-public/
       # https://gallery.ecr.aws/nginx/nginx
-      image = "public.ecr.aws/nginx/nginx:alpine"
+      image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/sbcntr-backend:v1"
 
       # TODO: if developer needs to use private repo, configure the below section
       # see https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/private-auth.html
