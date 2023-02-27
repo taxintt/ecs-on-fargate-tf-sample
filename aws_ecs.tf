@@ -29,7 +29,7 @@ resource "aws_ecs_service" "frontend" {
 
   enable_ecs_managed_tags = true
   network_configuration {
-    security_groups = [aws_security_group.internal.id]
+    security_groups = [aws_security_group.front_container.id]
     subnets = [
       aws_subnet.application_1a.id,
       aws_subnet.application_1c.id,
@@ -144,7 +144,7 @@ resource "aws_ecs_service" "backend" {
 
   enable_ecs_managed_tags = true
   network_configuration {
-    security_groups = [aws_security_group.internal.id]
+    security_groups = [aws_security_group.container.id]
     subnets = [
       aws_subnet.application_1a.id,
       aws_subnet.application_1c.id,
