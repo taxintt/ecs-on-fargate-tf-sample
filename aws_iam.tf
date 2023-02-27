@@ -26,7 +26,7 @@ resource "aws_iam_role_policy_attachment" "codedeploy" {
 
 # ECS task execution role
 # ref: https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/task_execution_IAM_role.html
-data "aws_iam_policy_document" "ecs_tasks_execution_role" {
+data "aws_iam_policy_document" "ecs_task_execution_role" {
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -39,7 +39,7 @@ data "aws_iam_policy_document" "ecs_tasks_execution_role" {
 
 resource "aws_iam_role" "ecs_task_execution_role" {
   name               = "ecs-task-execution-role"
-  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_execution_role.json
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_role.json
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
@@ -50,6 +50,11 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
 resource "aws_iam_role_policy_attachment" "ecr_readonly_role_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerRegistryReadOnly"
+}
+
+resource "aws_iam_role_policy_attachment" "secret_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.secret.arn
 }
 
 # aurora
@@ -64,12 +69,30 @@ data "aws_iam_policy_document" "aurora_monitoring" {
   }
 }
 resource "aws_iam_role" "aurora" {
-  name               = "aurora-enhanced-monitoring"
-  path               = "/"
+  name               = "rdsMonitoringRole"
   assume_role_policy = data.aws_iam_policy_document.aurora_monitoring.json
 }
 
 resource "aws_iam_role_policy_attachment" "aurora" {
   role       = aws_iam_role.aurora.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
+# secret manager
+data "aws_iam_policy_document" "secret" {
+  statement {
+    effect    = "Allow"
+    sid       = "GetSecretForECS"
+    resources = ["*"]
+    actions   = ["secretmanager:GetSecretValue"]
+  }
+}
+resource "aws_iam_policy" "secret" {
+  name   = "sbcntr-GettingSecretsPolicy"
+  policy = data.aws_iam_policy_document.secret.json
+}
+
+resource "aws_iam_role_policy_attachment" "secret" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.secret.arn
 }
