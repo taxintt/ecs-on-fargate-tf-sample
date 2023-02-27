@@ -529,7 +529,7 @@ resource "aws_vpc_endpoint" "s3" {
 
 resource "aws_vpc_endpoint" "secret" {
   vpc_id       = aws_vpc.main.id
-  service_name = "com.amazonaws.${var.region}.secretmanager"
+  service_name = "com.amazonaws.${var.region}.secretsmanager"
 
   security_group_ids = [aws_security_group.vpce.id]
   subnet_ids = [
