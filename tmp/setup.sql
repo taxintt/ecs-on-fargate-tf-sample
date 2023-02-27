@@ -1,4 +1,4 @@
--- mysql -h <write_endpoint> -u admin -p (password: (random string))
+-- mysql -h <writer_endpoint> -u admin -p (password: (random string))
 
 -- 1. confirm default user
 select host, user from mysql.user;
@@ -14,10 +14,10 @@ grant all on `prisma_migrate_shadow_db%`.* to migrate@'%' with grant option;
 select host, user from mysql.user;
 
 -- 3. setup > table and initial data
--- mysql -h <write_endpoint> -u sbcntruser -p 
+-- mysql -h <writer_endpoint> -u sbcntruser -p 
 -- password : sbcntrEncP
 -- exit;
--- mysql -h <write_endpoint> -u migrate -p
+-- mysql -h <writer_endpoint> -u migrate -p
 -- password : sbcntrMigrate
 -- exit;
 use sbcntrapp;
@@ -27,13 +27,13 @@ show tables;
 -- git checkout main
 -- export DB_USERNAME=migrate
 -- export DB_PASSWORD=sbcntrMigrate
--- export DB_HOST=<write_endpoint>
+-- export DB_HOST=<writer_endpoint>
 -- export DB_NAME=sbcntrapp
 -- npm run migrate:dev
 -- npm run seed
 
 -- 4. confirm initial data
--- mysql -h <write_endpoint> -u sbcntruser -p 
+-- mysql -h <writer_endpoint> -u sbcntruser -p 
 use sbcntrapp;
 show tables;
 select * from Notification;
